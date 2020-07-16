@@ -1,0 +1,14 @@
+{
+  "name": "alexa-capitals-quiz",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {
+    "aws-sdk": "^2.714.0"
+  },
+  "devDependencies": {
+    "serverless-iam-roles-per-function": "^2.0.2",
+    "serverless-plugin-create-deployment-bucket": "0.0.2",
+    "serverless-pseudo-parameters": "^2.5.0",
+    "serverless-python-requirements": "^5.1.0"
+  }
+}
