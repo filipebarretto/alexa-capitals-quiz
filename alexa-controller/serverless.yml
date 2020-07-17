@@ -20,6 +20,7 @@ functions:
     environment:
       ENV: 'environment'
       CAPITALS_TABLE: ${self:custom.capitals_table}
+      USER_SCORE_TABLE: ${self:custom.users_score_table}
     events:
       - alexaSkill: amzn1.ask.skill.b54dd66e-ec9f-4dc6-801f-bca26c1ed0f6
     iamRoleStatementsName: ${self:service}-alexa-handler-role-${self:custom.stage}
@@ -38,8 +39,16 @@ functions:
       - Effect: "Allow"
         Action:
           - "dynamodb:Scan"
+          - "dynamodb:UpdateItem"
         Resource:
           - !GetAtt CapitalsTables.Arn
+      - Effect: "Allow"
+        Action:
+          - "dynamodb:Query"
+          - "dynamodb:PutItem"
+          - "dynamodb:UpdateItem"
+        Resource:
+          - !GetAtt UsersScoreTables.Arn
 
 
 resources:

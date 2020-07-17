@@ -20,7 +20,7 @@ ImageInstance, Image, RenderTemplateDirective, ListTemplate1,
 BackButtonBehavior, ListItem, BodyTemplate2, BodyTemplate1)
 from ask_sdk_model import ui, Response
 
-from custom_modules import data, util, questions
+from custom_modules import data, util, questions, score
     
 
 # Skill Builder object
@@ -103,6 +103,11 @@ class StartQuizIntentHandler(AbstractRequestHandler):
         logger.info("In StartQuizIntentHandler")
         attr = handler_input.attributes_manager.session_attributes
         language = handler_input.request_envelope.request.locale.split('-')[0]
+        user_id = handler_input.request_envelope.session.user.user_id
+
+        # GETS USER CURRENT SCORE
+        user_score = score.get_score(user_id)
+        print(user_score)
 
         # ASK CAPITAL OF RANDOM COUNTRY
         # TODO: CHOOSE COUNTRY BY DIFICULTY
@@ -129,18 +134,30 @@ class AnswerIntentHandler(AbstractRequestHandler):
         logger.info("In StartQuizIntentHandler")
         attr = handler_input.attributes_manager.session_attributes
         language = handler_input.request_envelope.request.locale.split('-')[0]
+        user_id = handler_input.request_envelope.session.user.user_id
 
         # GETS USER ANSWER AND COMPARES TO CORRECT ANSWER
         slots = handler_input.request_envelope.request.intent.slots
         print(slots)
 
+        #answer = slots["capital"].resolutions.resolutions_per_authority[0].values[0].value.id
         answer = slots["capital"].value
         print(answer)
         print(attr['answer'])
 
-        correct_answer = (answer.lower() == attr['answer'].lower())
-        print(correct_answer)
-        if correct_answer:
+        is_correct = (answer.lower() == attr['answer'].lower())
+        print(is_correct)
+
+        # UPDATES THE QUESTION SCORE TO MEASURE QUESTION DIFFICULTY
+        qr = questions.update_question_global_score(attr["country"], is_correct)
+        print(qr)
+
+        # UPDATES THE USER'S SCORE
+        sr = score.update_user_score(user_id, is_correct)
+        print(sr)
+        
+
+        if is_correct:
             rsp = random.choice(data.I18N[language]['CORRECT_ANSWER'])
             card_title = data.I18N[language]['CORRECT_TITLE']
         else: 
@@ -149,18 +166,17 @@ class AnswerIntentHandler(AbstractRequestHandler):
 
 
         # card_img_url = util.get_card_icon("solvimm/solvimm-logo-white.png")
-        
-        card = ui.StandardCard(title = card_title, text = rsp)
-
         #, image = ui.Image(small_image_url = card_img_url, large_image_url = card_img_url))
         
         q = questions.get_question()
         attr['answer'] = q['answer']
         attr['country'] = q['country']
         rsp += random.choice(data.I18N[language]['QUIZ_QUESTION']).format(country=q['country'])
+
+        card = ui.StandardCard(title = card_title, text = rsp)
         
         response_builder = handler_input.response_builder
-        response_builder.speak(rsp).ask(rsp)
+        response_builder.speak(rsp).ask(rsp).set_card(card)
         
         return response_builder.response
 

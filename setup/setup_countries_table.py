@@ -21,7 +21,10 @@ def put_item_in_dynamodb(item):
 			'latitude': item['CapitalLatitude'],
 			'longitude': item['CapitalLongitude'],
 			'country_code': item['CountryCode'],
-			'continent': item['ContinentName']
+			'continent': item['ContinentName'],
+			'difficulty': item['difficulty'],
+			'asked_count': 0,
+			'correct_count': 0
         }
     )
 	return response
@@ -30,12 +33,19 @@ if __name__ == '__main__':
 	print('Adding countries to DynamoDB')
 	print('Opening JSON file')
 	countries_obj = open_json_file(FILE_NAME)
-
-	l = []
+	
+	countries_list = []
+	capitals_list = []
+	obj_list = []
 	print('Putting countries to DynamoDB')
 	for country in countries_obj:
-		#r = put_item_in_dynamodb(country)
-		#print(r)
-		#l.append(country['CountryName'])
-		l.append({"answer": country['CapitalName'], "country": country['CountryName']})
-	print(l)
+		r = put_item_in_dynamodb(country)
+		print(r)
+		countries_list.append({"id": country['CountryName'], "name": {"value": country['CountryName']}})
+		capitals_list.append({"id": country['CapitalName'], "name": {"value": country['CapitalName']}})
+		obj_list.append({"answer": country['CapitalName'], "country": country['CountryName']})
+	
+	print("\n\n")
+	print(json.dumps(countries_list))
+	print("\n\n")
+	print(json.dumps(capitals_list))
